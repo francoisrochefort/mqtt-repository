@@ -44,7 +44,7 @@ fun MainScreen(
         )
         Spacer(modifier = Modifier.height(10.dp))
         Button(
-            onClick = viewModel::onQueryPermission,
+            onClick = viewModel::onQueryPermissionClick,
             enabled = isConnected
         ) {
             Text(text = stringResource(id = R.string.query_permission))

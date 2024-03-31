@@ -36,7 +36,7 @@ class MainViewModel(
         }
     }
 
-    fun onQueryPermission() {
+    fun onQueryPermissionClick() {
         viewModelScope.launch {
             withTimeout(TIMEOUT) {
                 mqttRepository.queryPermission(
@@ -49,10 +49,7 @@ class MainViewModel(
         }
     }
     companion object {
-
         private const val TIMEOUT = 10000L
-        private const val CLIENT_ID = "belle"
-        private const val SERVER_URI = "tcp://167.114.3.107:1883"
 
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -66,9 +63,7 @@ class MainViewModel(
                 // Create a SavedStateHandle for this ViewModel from extras
                 val savedStateHandle = extras.createSavedStateHandle()
 
-                val mqttRepository = MqttRepository(clientId = CLIENT_ID)
-                mqttRepository.connect(context = application, serverUri = SERVER_URI)
-                return MainViewModel(mqttRepository = mqttRepository) as T
+                return MainViewModel(mqttRepository = Test1234.appModule.mqttRepository) as T
             }
         }
     }
