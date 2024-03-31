@@ -20,12 +20,30 @@ android {
         }
     }
 
+    signingConfigs {
+        debug {
+//            storeFile file('path/to/my-release-key.keystore')
+            storePassword '123456' // New password
+            keyAlias 'alias_name'
+            keyPassword '123456' // New password
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+
     }
+
+
+//    buildTypes {
+//        release {
+//            minifyEnabled false
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//        }
+//    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
