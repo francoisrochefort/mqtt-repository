@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Test1234</string>
     <string name="query_permission">QueryPermission</string>
+    <string name="data_setting_mqtt_server_uri">MQTT Server Uri</string>
 </resources>
