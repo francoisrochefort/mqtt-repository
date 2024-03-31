@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Test1234</string>
+    <string name="query_permission">QueryPermission</string>
+</resources>
