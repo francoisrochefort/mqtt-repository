@@ -1,4 +1,4 @@
-package com.example.test1234
+package com.example.test1234.ui.main
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.example.test1234.domain.MqttRepository
+import com.example.test1234.Test1234
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch

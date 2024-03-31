@@ -1,8 +1,14 @@
-package com.example.test1234
+package com.example.test1234.domain
 
 import android.content.Context
+import com.example.test1234.data.MqttApi
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 
+@OptIn(DelicateCoroutinesApi::class)
 class MqttRepository(
     private val clientId: String
 ) {
@@ -24,7 +30,7 @@ class MqttRepository(
                "OnPermissionRevoked" -> Events.OnPermissionRevoked
                 else -> Events.OnUnknownEvent(msg = msg)
             }
-        }
+        }.shareIn(GlobalScope, SharingStarted.Eagerly, 0)
     }
     val isConnected = mqttApi.isConnected
     fun connect(context: Context, serverUri: String) {

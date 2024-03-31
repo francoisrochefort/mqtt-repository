@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -22,10 +23,9 @@ android {
 
     signingConfigs {
         debug {
-//            storeFile file('path/to/my-release-key.keystore')
-            storePassword '123456' // New password
+            storePassword '123456'
             keyAlias 'alias_name'
-            keyPassword '123456' // New password
+            keyPassword '123456'
         }
     }
     buildTypes {
@@ -38,12 +38,6 @@ android {
     }
 
 
-//    buildTypes {
-//        release {
-//            minifyEnabled false
-//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-//        }
-//    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -91,4 +85,15 @@ dependencies {
 
     // viewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07"
+
+    // Room
+    def room_version = "2.6.1"
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version" // For annotation processing
+    // Optional: RxJava2 support for Room
+//    implementation "androidx.room:room-rxjava2:$room_version"
+    // Optional: RxJava3 support for Room
+//    implementation "androidx.room:room-rxjava3:$room_version"
+    // Optional: Guava support for Room (including Optional and ListenableFuture)
+//    implementation "androidx.room:room-guava:$room_version"
 }

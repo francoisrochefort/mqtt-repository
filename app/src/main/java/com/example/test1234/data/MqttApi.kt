@@ -1,4 +1,4 @@
-package com.example.test1234
+package com.example.test1234.data
 
 import android.content.Context
 import android.util.Log
@@ -83,9 +83,7 @@ class MqttApi(
 
     private fun subscribe() {
         Log.d(TAG, "subscribe()")
-        client.subscribe(
-            subTopic,
-            QoS.AtMostOnce.value,
+        client.subscribe(subTopic, QoS.AtMostOnce.value,
             null,
             object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken) {
@@ -128,16 +126,19 @@ class MqttApi(
                     Log.d(TAG, "MqttCallback::connectionLost()")
                     _isConnected.value = false
                 }
+
                 override fun messageArrived(topic: String?, message: MqttMessage?) {
                     Log.d(TAG, "MqttCallback::messageArrived()")
                     if (message != null) {
                         trySend(Gson().fromJson(String(message.payload), Msg::class.java))
                     }
                 }
+
                 override fun deliveryComplete(token: IMqttDeliveryToken?) {
                     Log.d(TAG, "MqttCallback::deliveryComplete()")
                     deferred.complete(Unit)
                 }
+
                 override fun connectComplete(reconnect: Boolean, serverURI: String?) {
                     _isConnected.value = true
                     if (reconnect)
