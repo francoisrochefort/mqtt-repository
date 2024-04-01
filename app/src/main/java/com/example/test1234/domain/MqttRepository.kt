@@ -1,20 +1,16 @@
 package com.example.test1234.domain
 
 import android.content.Context
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleCoroutineScope
+import android.util.Log
 import com.example.test1234.data.MqttApi
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+
+private const val TAG = "e-trak MqttRepository"
 
 class MqttRepository(
     private val clientId: String
@@ -58,7 +54,11 @@ class MqttRepository(
                "OnPermissionRevoked" -> Events.OnPermissionRevoked
                 else -> Events.OnUnknownEvent(msg = msg)
             }
-        }.shareIn(GlobalScope, SharingStarted.Eagerly, 0)
+        }
+            .shareIn(GlobalScope, SharingStarted.Eagerly, 0)
+            .onEach {
+            Log.d(TAG, it.toString())
+        }
     }
 
     val isConnected = mqttApi.isConnected
