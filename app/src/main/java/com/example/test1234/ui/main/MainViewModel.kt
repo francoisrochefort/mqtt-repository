@@ -8,9 +8,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.test1234.domain.MqttRepository
 import com.example.test1234.Test1234
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 
 private const val TAG = "e-trak MainViewModel"
@@ -25,28 +28,53 @@ class MainViewModel(
     val isConnected = mqttRepository.isConnected
     private val _isGranted = MutableStateFlow(false)
     val isGranted = _isGranted.asStateFlow()
+    private val mutex = Mutex()
+    private lateinit var deferred: CompletableDeferred<Boolean>
 
     init {
         viewModelScope.launch {
             events.collect { event ->
                 when (event) {
-                    is MqttRepository.Events.OnPermissionGranted -> _isGranted.value = true
-                    is MqttRepository.Events.OnPermissionRevoked -> _isGranted.value = false
-                    is MqttRepository.Events.OnUnknownEvent -> Log.d(TAG, event.msg.toString())
+                    is MqttRepository.Events.OnPermissionGranted -> {
+                        _isGranted.value = true
+                        deferred.complete(true)
+                    }
+                    is MqttRepository.Events.OnPermissionRevoked -> {
+                        _isGranted.value = false
+                        deferred.complete(false)
+                    }
+                    is MqttRepository.Events.OnUnknown -> Log.d(TAG, event.msg.toString())
                 }
             }
         }
     }
 
+    private suspend fun hasPermission(
+        hmi: String,
+        company: String,
+        operator: String,
+        tell: String
+    ) : Boolean = mutex.withLock {
+        deferred = CompletableDeferred()
+        mqttRepository.queryPermission(
+            hmi = hmi,
+            company = company,
+            operator = operator,
+            tell = tell
+        )
+        return deferred.await()
+    }
+
     fun onQueryPermissionClick() {
         viewModelScope.launch {
             withTimeout(TIMEOUT) {
-                mqttRepository.queryPermission(
+                val granted = hasPermission(
                     hmi = "belle",
                     company = "sexy",
                     operator = "mexicaine",
                     tell = "cochonne"
                 )
+                Log.d(TAG, "granted = $granted")
             }
         }
     }
