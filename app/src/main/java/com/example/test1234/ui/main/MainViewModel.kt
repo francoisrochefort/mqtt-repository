@@ -50,6 +50,7 @@ class MainViewModel(
             }
         }
     }
+
     companion object {
         private const val TIMEOUT = 10000L
 

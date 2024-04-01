@@ -11,14 +11,14 @@ import java.security.InvalidParameterException
 @Entity(tableName = "settings")
 data class Setting(
     @PrimaryKey
-    val id: Id,
+    val id: PrimaryKeys,
     val type: Type,
     @ColumnInfo(name = "int_value")
     val intValue: Int?,
     @ColumnInfo(name = "string_value")
     val stringValue: String?
 ) {
-    enum class Id(val value: Int) {
+    enum class PrimaryKeys(val value: Int) {
         MqttServerUri(value = 1)
     }
 
@@ -29,7 +29,7 @@ data class Setting(
 
     @get:Ignore
     val description: Int @StringRes get() = when(id) {
-        Id.MqttServerUri -> R.string.data_setting_mqtt_server_uri
+        PrimaryKeys.MqttServerUri -> R.string.data_setting_mqtt_server_uri
         else -> throw InvalidParameterException()
     }
 }

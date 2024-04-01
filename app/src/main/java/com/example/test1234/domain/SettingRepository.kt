@@ -7,5 +7,5 @@ import kotlinx.coroutines.flow.Flow
 class SettingRepository(
     private val settingDao: SettingDao
 ) {
-    val mqttServerUri: Flow<String> get() = settingDao.getStringValue(Setting.Id.MqttServerUri)
+    val mqttServerUri: Flow<String> get() = settingDao.getStringValue(Setting.PrimaryKeys.MqttServerUri)
 }

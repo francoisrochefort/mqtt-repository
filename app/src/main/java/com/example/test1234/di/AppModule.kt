@@ -6,7 +6,6 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.test1234.data.Db
 import com.example.test1234.data.settings.Setting
-import com.example.test1234.data.settings.SettingDao
 import com.example.test1234.domain.MqttRepository
 import com.example.test1234.domain.SettingRepository
 
@@ -31,7 +30,7 @@ class AppModule(
                             VALUES (?, ?, ?, ?)
                             """.trimIndent(),
                             arrayOf(
-                                Setting.Id.MqttServerUri,
+                                Setting.PrimaryKeys.MqttServerUri,
                                 Setting.Type.StringValue.id,
                                 null,
                                 "tcp://167.114.3.107:1883"
