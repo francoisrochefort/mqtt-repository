@@ -72,7 +72,6 @@ class MqttApi(
                     _isConnected.value = true
                     Log.d(TAG, "connect=onSuccess")
                 }
-
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
                     _isConnected.value = false
                     Log.d(TAG, "connect=onFailure")
@@ -99,12 +98,9 @@ class MqttApi(
     suspend fun publish(msg: Msg) {
         mutex.withLock {
             Log.d(TAG, "publish(msg=$msg)")
-
             deferred = CompletableDeferred()
-
             val json = Gson().toJson(msg)
             Log.d(TAG, "publish(json=$json)")
-
             val message = MqttMessage()
             message.payload = json.toByteArray()
             if (client.isConnected) {
@@ -113,12 +109,10 @@ class MqttApi(
                     throw NotConnectedToMqttException()
             } else
                 throw NotConnectedToMqttException()
-
             deferred.await()
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     val messages by lazy {
         callbackFlow {
             val callback = object : MqttCallbackExtended {
@@ -126,19 +120,16 @@ class MqttApi(
                     Log.d(TAG, "MqttCallback::connectionLost()")
                     _isConnected.value = false
                 }
-
                 override fun messageArrived(topic: String?, message: MqttMessage?) {
                     Log.d(TAG, "MqttCallback::messageArrived()")
                     if (message != null) {
                         trySend(Gson().fromJson(String(message.payload), Msg::class.java))
                     }
                 }
-
                 override fun deliveryComplete(token: IMqttDeliveryToken?) {
                     Log.d(TAG, "MqttCallback::deliveryComplete()")
                     deferred.complete(Unit)
                 }
-
                 override fun connectComplete(reconnect: Boolean, serverURI: String?) {
                     _isConnected.value = true
                     if (reconnect)
@@ -150,7 +141,5 @@ class MqttApi(
                 Log.d(TAG, "callbackFlow::awaitClose()")
             }
         }
-            // Sharing is started immediately and never stops
-            .shareIn(GlobalScope, SharingStarted.Eagerly, 0)
     }
 }
