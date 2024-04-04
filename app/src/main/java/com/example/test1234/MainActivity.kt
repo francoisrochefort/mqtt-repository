@@ -30,8 +30,8 @@ class MainActivity : ComponentActivity() {
                 val mqttServerUri = Test1234.appModule.settingRepository.mqttServerUri
                 mqttServerUri.collect { uri ->
                     val mqttRepository = Test1234.appModule.mqttRepository
-                    mqttRepository.connect(application, uri)
-                    Log.d(TAG, "connected to '$uri'")
+                    mqttRepository.connect(application, uri, CLIENT_ID)
+                    Log.d(TAG, "connected to '$uri' as '$CLIENT_ID'")
                 }
             }
         }
@@ -48,5 +48,10 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    companion object {
+        private const val CLIENT_ID = "belle"
+    }
 }
+
 

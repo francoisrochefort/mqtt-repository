@@ -51,11 +51,6 @@ class AppModule(
     }
 
     val mqttRepository by lazy {
-        val mqttRepository = MqttRepository(clientId = CLIENT_ID)
-        mqttRepository
-    }
-
-    companion object {
-        private const val CLIENT_ID = "belle"
+        MqttRepository()
     }
 }

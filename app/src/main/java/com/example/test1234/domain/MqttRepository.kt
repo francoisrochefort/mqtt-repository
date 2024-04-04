@@ -10,40 +10,25 @@ import kotlinx.coroutines.flow.shareIn
 
 private const val TAG = "e-trak MqttRepository"
 
-class MqttRepository(
-    private val clientId: String
-) {
+class MqttRepository {
     sealed class Events {
         data object OnPermissionGranted : Events()
         data object OnPermissionRevoked : Events()
         data class OnUnknown(val msg: MqttApi.Msg) : Events()
     }
-
     private val mqttApi by lazy {
-        MqttApi(
+        MqttApi()
+    }
+     fun connect(context: Context, serverUri: String, clientId: String) {
+        mqttApi.connect(
+            context = context,
+            serverUri = serverUri,
+            clientId = clientId,
             subTopic = "e-trak/ls7/events/$clientId",
             pubTopic = "e-trak/ls7/commands"
         )
     }
-
-    fun queryPermission(
-        hmi: String,
-        company: String,
-        operator: String,
-        tell: String
-    ) {
-        val msg = MqttApi.Msg(
-            name = "QueryPermission",
-            parameters = listOf(
-                MqttApi.Parameter(name = "hmi", hmi),
-                MqttApi.Parameter(name = "company", company),
-                MqttApi.Parameter(name = "operator", operator),
-                MqttApi.Parameter(name = "tell", tell),
-            )
-        )
-        mqttApi.publish(msg = msg)
-    }
-
+    val isConnected = mqttApi.isConnected
     @OptIn(DelicateCoroutinesApi::class)
     val events by lazy {
         mqttApi.messages.map { msg ->
@@ -54,13 +39,21 @@ class MqttRepository(
             }
         }.shareIn(GlobalScope, SharingStarted.Eagerly, 0)
     }
-
-    val isConnected = mqttApi.isConnected
-    fun connect(context: Context, serverUri: String) {
-        mqttApi.connect(
-            context = context,
-            serverUri = serverUri,
-            clientId = clientId
+    fun queryPermission(
+        hmi: String,
+        company: String,
+        operator: String,
+        tell: String
+    ) {
+        val msg = MqttApi.Msg(
+            name = "QueryPermission",
+            parameters = listOf(
+                MqttApi.Msg.Parameter(name = "hmi", hmi),
+                MqttApi.Msg.Parameter(name = "company", company),
+                MqttApi.Msg.Parameter(name = "operator", operator),
+                MqttApi.Msg.Parameter(name = "tell", tell),
+            )
         )
+        mqttApi.publish(msg = msg)
     }
 }

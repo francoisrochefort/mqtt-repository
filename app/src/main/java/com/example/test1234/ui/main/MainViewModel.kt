@@ -9,8 +9,11 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.test1234.domain.MqttRepository
 import com.example.test1234.Test1234
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -18,14 +21,17 @@ import kotlinx.coroutines.withTimeout
 
 private const val TAG = "e-trak MainViewModel"
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModel(
 
     val mqttRepository: MqttRepository
 
 ) : ViewModel() {
 
-    private val events = mqttRepository.events
     val isConnected = mqttRepository.isConnected
+    private val events = isConnected.flatMapLatest { connected ->
+        if (connected) mqttRepository.events else emptyFlow()
+    }
     private val _isGranted = MutableStateFlow(false)
     val isGranted = _isGranted.asStateFlow()
     private val mutex = Mutex()
