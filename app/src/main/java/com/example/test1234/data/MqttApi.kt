@@ -20,16 +20,15 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 
-private const val TAG = "e-trak MqttApi"
-
 class MqttApi {
+    companion object {
+        private const val TAG = "e-trak MqttApi"
+    }
     class NotConnectedToMqttException : Exception()
-
     data class Msg(val name: String, val parameters: List<Parameter> = emptyList()) {
         data class Parameter(val name: String, val value: String) {
             override fun toString() = "$name=$value"
         }
-
         override fun toString() = "$name(${parameters.joinToString(", ")})"
     }
 
@@ -39,24 +38,11 @@ class MqttApi {
     private lateinit var subTopic: String
     private lateinit var pubTopic: String
 
-    fun connect(
-        context: Context,
-        serverUri: String,
-        clientId: String,
-        subTopic: String,
-        pubTopic: String
-    ) {
+    fun connect(context: Context, serverUri: String, clientId: String, subTopic: String, pubTopic: String) {
         Log.d(TAG, "connect()")
-
-        client = MqttAndroidClient(
-            context = context,
-            serverURI = serverUri,
-            clientId = clientId
-        )
-
+        client = MqttAndroidClient(context = context, serverURI = serverUri, clientId = clientId)
         this.subTopic = subTopic
         this.pubTopic = pubTopic
-
         val options = MqttConnectOptions().apply {
             isAutomaticReconnect = true
             isCleanSession = false
@@ -77,7 +63,6 @@ class MqttApi {
                     _isConnected.value = true
                     Log.d(TAG, "connect=onSuccess")
                 }
-
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
                     _isConnected.value = false
                     Log.d(TAG, "connect=onFailure")
@@ -115,55 +100,38 @@ class MqttApi {
         } else
             throw NotConnectedToMqttException()
     }
+    @OptIn(ExperimentalCoroutinesApi::class)
     val messages by lazy {
-        callbackFlow {
-            val callback = object : MqttCallbackExtended {
-                override fun connectionLost(cause: Throwable?) {
-                    Log.d(TAG, "MqttCallback::connectionLost()")
-                    _isConnected.value = false
-                }
-                override fun messageArrived(topic: String?, message: MqttMessage?) {
-                    Log.d(TAG, "MqttCallback::messageArrived()")
-                    if (message != null)
-                        trySend(Gson().fromJson(String(message.payload), Msg::class.java))
-                }
-                override fun deliveryComplete(token: IMqttDeliveryToken?) {
-                    Log.d(TAG, "MqttCallback::deliveryComplete()")
-                }
-                override fun connectComplete(reconnect: Boolean, serverURI: String?) {
-                    _isConnected.value = true
-                    if (reconnect)
-                        subscribe()
+        _isConnected.flatMapLatest { connected ->
+            if (connected) {
+                callbackFlow {
+                    val callback = object : MqttCallbackExtended {
+                        override fun connectionLost(cause: Throwable?) {
+                            Log.d(TAG, "MqttCallback::connectionLost()")
+                            _isConnected.value = false
+                        }
+                        override fun messageArrived(topic: String?, message: MqttMessage?) {
+                            Log.d(TAG, "MqttCallback::messageArrived()")
+                            if (message != null)
+                                trySend(Gson().fromJson(String(message.payload), Msg::class.java))
+                        }
+                        override fun deliveryComplete(token: IMqttDeliveryToken?) {
+                            Log.d(TAG, "MqttCallback::deliveryComplete()")
+                        }
+                        override fun connectComplete(reconnect: Boolean, serverURI: String?) {
+                            _isConnected.value = true
+                            if (reconnect)
+                                subscribe()
+                        }
+                    }
+                    client.setCallback(callback)
+                    awaitClose {
+                        Log.d(TAG, "callbackFlow::awaitClose()")
+                    }
                 }
             }
-            client.setCallback(callback)
-            awaitClose {
-                Log.d(TAG, "callbackFlow::awaitClose()")
-            }
+            else
+                emptyFlow()
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

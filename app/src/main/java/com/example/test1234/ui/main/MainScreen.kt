@@ -22,8 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.test1234.R
 
-private const val TAG = "e-trak MainScreen"
-
 @Composable
 fun MainScreen(
     viewModel: MainViewModel = viewModel()

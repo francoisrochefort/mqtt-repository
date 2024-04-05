@@ -1,4 +1,4 @@
-package com.example.test1234.domain
+package com.example.test1234.domain.kevin
 
 import android.content.Context
 import com.example.test1234.data.MqttApi
@@ -8,17 +8,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 
-private const val TAG = "e-trak MqttRepository"
-
-class MqttRepository {
+class Kevin {
     sealed class Events {
         data object OnPermissionGranted : Events()
         data object OnPermissionRevoked : Events()
         data class OnUnknown(val msg: MqttApi.Msg) : Events()
     }
-    private val mqttApi by lazy {
-        MqttApi()
-    }
+    private val mqttApi by lazy { MqttApi() }
      fun connect(context: Context, serverUri: String, clientId: String) {
         mqttApi.connect(
             context = context,
@@ -35,7 +31,7 @@ class MqttRepository {
             when (msg.name) {
                 "OnPermissionGranted" -> Events.OnPermissionGranted
                 "OnPermissionRevoked" -> Events.OnPermissionRevoked
-                else -> Events.OnUnknown(msg = msg)
+                 else -> Events.OnUnknown(msg = msg)
             }
         }.shareIn(GlobalScope, SharingStarted.Eagerly, 0)
     }
@@ -57,3 +53,11 @@ class MqttRepository {
         mqttApi.publish(msg = msg)
     }
 }
+
+
+
+
+
+
+
+

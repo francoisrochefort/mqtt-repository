@@ -6,8 +6,8 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.test1234.data.Db
 import com.example.test1234.data.settings.Setting
-import com.example.test1234.domain.MqttRepository
-import com.example.test1234.domain.SettingRepository
+import com.example.test1234.domain.kevin.Kevin
+import com.example.test1234.domain.settings.SettingRepository
 
 class AppModule(
     private val appContext: Context
@@ -50,7 +50,7 @@ class AppModule(
         SettingRepository(settingDao = settingDao)
     }
 
-    val mqttRepository by lazy {
-        MqttRepository()
+    val kevin by lazy {
+        Kevin()
     }
 }

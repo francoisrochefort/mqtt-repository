@@ -18,19 +18,17 @@ import com.example.test1234.ui.theme.Test1234Theme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-private const val TAG = "e-trak MainActivity"
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Reconnect to MQTT server when the URI changes
+        // Reconnect to MQTT server when the URI changes or an activity is being created
         lifecycleScope.launch(Dispatchers.IO) {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
-                val mqttServerUri = Test1234.appModule.settingRepository.mqttServerUri
-                mqttServerUri.collect { uri ->
-                    val mqttRepository = Test1234.appModule.mqttRepository
-                    mqttRepository.connect(application, uri, CLIENT_ID)
+                val flow = Test1234.appModule.settingRepository.mqttServerUri
+                flow.collect { uri ->
+                    val kevin = Test1234.appModule.kevin
+                    kevin.connect(application, uri, CLIENT_ID)
                     Log.d(TAG, "connected to '$uri' as '$CLIENT_ID'")
                 }
             }
@@ -50,6 +48,7 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
+        private const val TAG = "e-trak MainActivity"
         private const val CLIENT_ID = "belle"
     }
 }

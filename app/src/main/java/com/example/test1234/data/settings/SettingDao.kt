@@ -7,5 +7,5 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SettingDao {
     @Query("SELECT string_value FROM settings WHERE id = :id")
-    fun getStringValue(id: Setting.PrimaryKeys) : Flow<String>
+    fun getStringFlowOf(id: Setting.PrimaryKeys) : Flow<String>
 }
