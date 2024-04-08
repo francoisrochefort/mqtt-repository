@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">Test1234</string>
-    <string name="query_permission">QueryPermission</string>
+    <string name="ui_main_main_screen_grant_permission">Grant Permission</string>
     <string name="data_setting_mqtt_server_uri">MQTT Server Uri</string>
+    <string name="kevin_service_notification_content_title">Kevin service</string>
+    <string name="kevin_service_notification_content_text">Pending permission requests</string>
+    <string name="ui_main_main_screen_revoke_permission">Revoke Permission</string>
+    <string name="ui_main_main_content_empty_list">List is empty</string>
 </resources>

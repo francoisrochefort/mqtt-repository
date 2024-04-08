@@ -1,52 +1,37 @@
 package com.example.test1234.ui.main
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.test1234.R
 
 @Composable
 fun MainScreen(
     viewModel: MainViewModel = viewModel()
 ) {
-    val isConnected by viewModel.isConnected.collectAsState()
-    val isGranted by viewModel.isGranted.collectAsState()
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = if (isGranted)
-                Icons.Default.CheckCircle
-            else
-                Icons.Default.Lock,
-            contentDescription = null,
-            modifier = Modifier.size(72.dp)
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        Button(
-            onClick = viewModel::onQueryPermissionClick,
-            enabled = isConnected
-        ) {
-            Text(text = stringResource(id = R.string.query_permission))
+    val context = LocalContext.current
+    val isConnected by viewModel.isConnected.collectAsState(initial = false)
+    val hmis by viewModel.hmis.collectAsState(initial = emptyList())
+
+    LaunchedEffect(key1 = true) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is MainViewModel.Events.OnError -> Toast.makeText(
+                    context, event.e.message, Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
+    MainContent(
+        isConnected = isConnected,
+        hmis = hmis,
+        onGrantPermissionClick = viewModel::onGrantPermissionClick,
+        onRevokePermissionClick = viewModel::onRevokePermissionClick,
+        onDialClick = viewModel::onDialClick,
+        onMuteClick = viewModel::onMuteClick,
+        onDeleteClick = viewModel::onDeleteClick
+    )
 }

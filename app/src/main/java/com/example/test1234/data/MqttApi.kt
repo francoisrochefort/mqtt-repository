@@ -36,13 +36,11 @@ class MqttApi {
     private val _isConnected = MutableStateFlow(false)
     val isConnected = _isConnected.asStateFlow()
     private lateinit var subTopic: String
-    private lateinit var pubTopic: String
 
-    fun connect(context: Context, serverUri: String, clientId: String, subTopic: String, pubTopic: String) {
+    fun connect(context: Context, serverUri: String, clientId: String, subTopic: String) {
         Log.d(TAG, "connect()")
         client = MqttAndroidClient(context = context, serverURI = serverUri, clientId = clientId)
         this.subTopic = subTopic
-        this.pubTopic = pubTopic
         val options = MqttConnectOptions().apply {
             isAutomaticReconnect = true
             isCleanSession = false
@@ -87,14 +85,14 @@ class MqttApi {
         )
     }
 
-    fun publish(msg: Msg) {
+    fun publish(topic: String, msg: Msg) {
         Log.d(TAG, "publish(msg=$msg)")
         val json = Gson().toJson(msg)
         Log.d(TAG, "publish(json=$json)")
         val message = MqttMessage()
         message.payload = json.toByteArray()
         if (client.isConnected) {
-            client.publish(pubTopic, message)
+            client.publish(topic, message)
             if (!client.isConnected)
                 throw NotConnectedToMqttException()
         } else

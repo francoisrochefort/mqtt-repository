@@ -1,85 +1,95 @@
 package com.example.test1234.ui.main
 
-import android.util.Log
+import android.app.Application
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import com.example.test1234.domain.kevin.Kevin
 import com.example.test1234.Test1234
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import com.example.test1234.data.hmi.Hmi
+import com.example.test1234.domain.hmi.HmiRepository
+import com.example.test1234.service.KevinServiceProxy
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withTimeout
 
 class MainViewModel(
 
-    val kevin: Kevin
+    private val hmiRepository: HmiRepository,
+    private val kevinServiceProxy: KevinServiceProxy,
+    application: Application
 
-) : ViewModel() {
+) : AndroidViewModel(application = application) {
 
-    val isConnected = kevin.isConnected
-    private val _isGranted = MutableStateFlow(false)
-    val isGranted = _isGranted.asStateFlow()
-    private val mutex = Mutex()
-    private lateinit var deferred: CompletableDeferred<Boolean>
+    sealed class Events {
+        data class OnError(val e: Exception) : Events()
+    }
 
-    init {
-        viewModelScope.launch {
-            kevin.events.collect { event ->
-                Log.d(TAG, event.toString())
-                when (event) {
-                    is Kevin.Events.OnPermissionGranted -> {
-                        _isGranted.value = true
-                        deferred.complete(true)
-                    }
-                    is Kevin.Events.OnPermissionRevoked -> {
-                        _isGranted.value = false
-                        deferred.complete(false)
-                    }
-                    else -> Unit
-                }
+    private val _events = Channel<Events>()
+    val events = _events.receiveAsFlow()
+    val isConnected = kevinServiceProxy.isConnected
+    val hmis = hmiRepository.listAll()
+
+    fun onDeleteClick(hmi: Hmi) {
+        viewModelScope.launch(Dispatchers.IO) {
+            hmiRepository.delete(hmi = hmi)
+        }
+    }
+
+    fun onMuteClick(hmi: Hmi) {
+        viewModelScope.launch(Dispatchers.IO) {
+            hmiRepository.mute(hmi)
+        }
+    }
+
+    fun onDialClick(hmi: Hmi) {
+        try {
+            val context: Context = getApplication()
+            val uri = Uri.parse("tel:${hmi.tell}")
+            val intent = Intent(Intent.ACTION_DIAL, uri)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            ContextCompat.startActivity(context, intent, null)
+        }
+        catch (e: Exception) {
+            viewModelScope.launch {
+                _events.send(Events.OnError(e = e))
             }
         }
     }
 
-    private suspend fun hasPermission(
-        hmi: String,
-        company: String,
-        operator: String,
-        tell: String
-    ) : Boolean = mutex.withLock {
-        deferred = CompletableDeferred()
-        kevin.queryPermission(
-            hmi = hmi,
-            company = company,
-            operator = operator,
-            tell = tell
-        )
-        return deferred.await()
+    fun onGrantPermissionClick(hmi: Hmi) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                hmiRepository.grantPermission(hmi = hmi)
+                kevinServiceProxy.grantPermission(hmi = hmi)
+            }
+            catch (e: Exception) {
+                _events.send(Events.OnError(e = e))
+            }
+        }
     }
 
-    fun onQueryPermissionClick() {
-        viewModelScope.launch {
-            withTimeout(TIMEOUT) {
-                val granted = hasPermission(
-                    hmi = "belle",
-                    company = "sexy",
-                    operator = "mexicaine",
-                    tell = "cochonne"
-                )
-                Log.d(TAG, "granted = $granted")
+    fun onRevokePermissionClick(hmi: Hmi) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                hmiRepository.revokePermission(hmi = hmi)
+                kevinServiceProxy.revokePermission(hmi = hmi)
+            }
+            catch (e: Exception) {
+                _events.send(Events.OnError(e = e))
             }
         }
     }
 
     companion object {
         private const val TAG = "e-trak MainViewModel"
-        private const val TIMEOUT = 10000L
 
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -89,7 +99,11 @@ class MainViewModel(
             ): T {
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
                 val savedStateHandle = extras.createSavedStateHandle()
-                return MainViewModel(kevin = Test1234.appModule.kevin) as T
+                return MainViewModel(
+                    hmiRepository = Test1234.appModule.hmiRepository,
+                    kevinServiceProxy = Test1234.appModule.kevinServiceProxy,
+                    application = application
+                ) as T
             }
         }
     }

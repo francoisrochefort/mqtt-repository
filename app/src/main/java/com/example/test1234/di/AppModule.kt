@@ -4,10 +4,12 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.test1234.domain.hmi.HmiRepository
 import com.example.test1234.data.Db
 import com.example.test1234.data.settings.Setting
-import com.example.test1234.domain.kevin.Kevin
+import com.example.test1234.service.KevinServiceProxy
 import com.example.test1234.domain.settings.SettingRepository
+import com.example.test1234.service.KevinMqttProxy
 
 class AppModule(
     private val appContext: Context
@@ -50,7 +52,19 @@ class AppModule(
         SettingRepository(settingDao = settingDao)
     }
 
-    val kevin by lazy {
-        Kevin()
+    private val hmiDao by lazy {
+        db.hmiDao
+    }
+
+    val hmiRepository by lazy {
+        HmiRepository(hmiDao = hmiDao)
+    }
+
+    val kevinMqttProxy by lazy {
+        KevinMqttProxy()
+    }
+
+    val kevinServiceProxy by lazy {
+        KevinServiceProxy(context = appContext)
     }
 }
