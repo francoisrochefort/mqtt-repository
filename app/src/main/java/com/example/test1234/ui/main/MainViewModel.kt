@@ -15,6 +15,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.test1234.Test1234
 import com.example.test1234.data.hmi.Hmi
 import com.example.test1234.domain.hmi.HmiRepository
+import com.example.test1234.domain.settings.SettingRepository
 import com.example.test1234.service.KevinServiceProxy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -27,6 +28,7 @@ class MainViewModel(
 
     private val hmiRepository: HmiRepository,
     private val kevinServiceProxy: KevinServiceProxy,
+    private val settingRepository: SettingRepository,
     application: Application
 
 ) : AndroidViewModel(application = application) {
@@ -76,6 +78,7 @@ class MainViewModel(
     private val _events = Channel<Events>()
     val events = _events.receiveAsFlow()
     val isConnected = kevinServiceProxy.isConnected
+    val mqttServerUri = settingRepository.mqttServerUri
     val hmis = hmiRepository.listAll()
 
     init {
@@ -194,7 +197,8 @@ class MainViewModel(
                 return MainViewModel(
                     hmiRepository = Test1234.appModule.hmiRepository,
                     kevinServiceProxy = Test1234.appModule.kevinServiceProxy,
-                    application = application
+                    application = application,
+                    settingRepository = Test1234.appModule.settingRepository
                 ) as T
             }
         }

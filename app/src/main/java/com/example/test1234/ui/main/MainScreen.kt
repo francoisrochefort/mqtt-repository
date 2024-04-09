@@ -8,6 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.res.stringResource
+import com.example.test1234.R
 
 @Composable
 fun MainScreen(
@@ -17,6 +19,7 @@ fun MainScreen(
     val selectionMode by viewModel.selectionMode.collectAsState()
     val selection by viewModel.selection.collectAsState()
     val isConnected by viewModel.isConnected.collectAsState(initial = false)
+    val mqttServerUri by viewModel.mqttServerUri.collectAsState(initial = stringResource(id = R.string.ui_main_main_screen_loading))
     val hmis by viewModel.hmis.collectAsState(initial = emptyList())
 
     LaunchedEffect(key1 = true) {
@@ -36,6 +39,7 @@ fun MainScreen(
 
     MainContent(
         isConnected = isConnected,
+        mqttServerUri = mqttServerUri,
 
         onHmiClick = viewModel::onHmiClick,
         onHmiLongClick = viewModel::onHmiLongClick,

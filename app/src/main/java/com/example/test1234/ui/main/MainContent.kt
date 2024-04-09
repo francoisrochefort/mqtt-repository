@@ -11,6 +11,7 @@ import com.example.test1234.data.hmi.Hmi
 @Composable
 fun MainContent(
     isConnected: Boolean,
+    mqttServerUri: String,
 
     onHmiClick: (Hmi) -> Unit,
     onHmiLongClick: (Hmi) -> Unit,
@@ -50,7 +51,7 @@ fun MainContent(
             AnimatedVisibility(
                 visible = selectionMode == MainViewModel.SelectionMode.NORMAL
             ) {
-                TopBar()
+                TopBar(mqttServerUri = mqttServerUri)
             }
         }
     ) { paddingValues ->
