@@ -6,4 +6,6 @@
     <string name="kevin_service_notification_content_text">Pending permission requests</string>
     <string name="ui_main_main_screen_revoke_permission">Revoke Permission</string>
     <string name="ui_main_main_content_empty_list">List is empty</string>
+    <string name="ui_main_main_content_topbar_title">Kevin</string>
+    <string name="ui_main_hmi_list_all">All</string>
 </resources>

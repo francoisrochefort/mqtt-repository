@@ -7,12 +7,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.activity.compose.BackHandler
 
 @Composable
 fun MainScreen(
     viewModel: MainViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val selectionMode by viewModel.selectionMode.collectAsState()
+    val selection by viewModel.selection.collectAsState()
     val isConnected by viewModel.isConnected.collectAsState(initial = false)
     val hmis by viewModel.hmis.collectAsState(initial = emptyList())
 
@@ -25,9 +28,28 @@ fun MainScreen(
             }
         }
     }
+
+    BackHandler(
+        enabled = selectionMode == MainViewModel.SelectionMode.MULTIPLE,
+        onBack = viewModel::onBack
+    )
+
     MainContent(
         isConnected = isConnected,
+
+        onHmiClick = viewModel::onHmiClick,
+        onHmiLongClick = viewModel::onHmiLongClick,
+        selectionMode = selectionMode,
+        selection = selection,
+        selectAll = viewModel::selectAll,
+
         hmis = hmis,
+
+        onMuteAllClick = viewModel::onMuteAllClick,
+        onGrantAllPermissionClick = viewModel::onGrantAllPermissionClick,
+        onRevokeAllPermissionClick = viewModel::onRevokeAllPermissionClick,
+        onDeleteAllClick = viewModel::onDeleteAllClick,
+
         onGrantPermissionClick = viewModel::onGrantPermissionClick,
         onRevokePermissionClick = viewModel::onRevokePermissionClick,
         onDialClick = viewModel::onDialClick,

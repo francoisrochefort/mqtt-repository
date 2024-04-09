@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
@@ -17,6 +18,8 @@ import com.example.test1234.domain.hmi.HmiRepository
 import com.example.test1234.service.KevinServiceProxy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -28,6 +31,44 @@ class MainViewModel(
 
 ) : AndroidViewModel(application = application) {
 
+    enum class SelectionMode {
+        NORMAL,
+        MULTIPLE
+    }
+    private val _selectionMode = MutableStateFlow(SelectionMode.NORMAL)
+    val selectionMode = _selectionMode.asStateFlow()
+    private val _selection = MutableStateFlow(emptyList<Hmi>())
+    val selection = _selection.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            _selectionMode.collect { mode ->
+                if (mode == SelectionMode.NORMAL)
+                    _selection.value = emptyList()
+            }
+        }
+    }
+
+    fun onHmiClick(hmi: Hmi) {
+        Log.d(TAG, "onHmiClick(hmi='$hmi')")
+        val selected = hmi !in _selection.value
+        if (selected)
+            _selection.value = _selection.value.toMutableList() + hmi
+        else
+            _selection.value = _selection.value.toMutableList() - hmi
+    }
+
+    fun onHmiLongClick(hmi: Hmi) {
+        Log.d(TAG, "onHmiLongClick(hmi='$hmi')")
+        if (_selectionMode.value == SelectionMode.NORMAL)
+            _selectionMode.value = SelectionMode.MULTIPLE
+        onHmiClick(hmi = hmi)
+    }
+
+    fun onBack() {
+        _selectionMode.value = SelectionMode.NORMAL
+    }
+
     sealed class Events {
         data class OnError(val e: Exception) : Events()
     }
@@ -36,6 +77,17 @@ class MainViewModel(
     val events = _events.receiveAsFlow()
     val isConnected = kevinServiceProxy.isConnected
     val hmis = hmiRepository.listAll()
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            hmis.collect { list ->
+                _selection.value.forEach { hmi ->
+                    if (hmi !in list)
+                        _selection.value = _selection.value.toMutableList() - hmi
+                }
+            }
+        }
+    }
 
     fun onDeleteClick(hmi: Hmi) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -62,6 +114,46 @@ class MainViewModel(
                 _events.send(Events.OnError(e = e))
             }
         }
+    }
+
+    fun selectAll(hmis: List<Hmi>) {
+        val selected = _selection.value.toMutableList()
+        hmis.forEach { hmi ->
+            if (hmi !in selected) selected += hmi
+        }
+        _selection.value = selected
+    }
+
+    fun onMuteAllClick() {
+        val selected = _selection.value
+        selected.forEach { hmi ->
+            onMuteClick(hmi = hmi)
+        }
+        _selectionMode.value = SelectionMode.NORMAL
+    }
+
+    fun onGrantAllPermissionClick() {
+        val selected = _selection.value
+        selected.forEach { hmi ->
+            onGrantPermissionClick(hmi = hmi)
+        }
+        _selectionMode.value = SelectionMode.NORMAL
+    }
+
+    fun onRevokeAllPermissionClick() {
+        val selected = _selection.value
+        selected.forEach { hmi ->
+            onRevokePermissionClick(hmi = hmi)
+        }
+        _selectionMode.value = SelectionMode.NORMAL
+    }
+
+    fun onDeleteAllClick() {
+        val selected = _selection.value
+        selected.forEach { hmi ->
+            onDeleteClick(hmi = hmi)
+        }
+        _selectionMode.value = SelectionMode.NORMAL
     }
 
     fun onGrantPermissionClick(hmi: Hmi) {

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface HmiDao {
 
-    @Query("SELECT * FROM hmis")
+    @Query("SELECT * FROM hmis ORDER BY company, operator ASC")
     fun listAll() : Flow<List<Hmi>>
 
     @Query("SELECT * FROM hmis WHERE id = :id")
